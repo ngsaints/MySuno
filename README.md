@@ -41,7 +41,7 @@ Um estúdio de música com IA que cabe no navegador — com visual de vidro, ins
 4. Escolha o estilo, confira o modelo e clique em **Criar Música**.
 5. Acompanhe a geração e ouça o resultado na biblioteca.
 
-O uso do aplicativo não inclui créditos de geração. Operações e cobranças dependem da conta e das condições da KIE. [Cadastre-se pelo link de indicação](https://kie.ai?ref=e8f6dd065f9a24fc91437577241fd3e6).
+O uso do aplicativo não inclui créditos de geração. Operações e cobranças dependem da conta e das condições da KIE. [crie sua conta Kie](https://kie.ai?ref=e8f6dd065f9a24fc91437577241fd3e6).
 
 ## 📲 Instale como aplicativo
 
