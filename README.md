@@ -31,7 +31,7 @@ Um estúdio de música com IA que cabe no navegador — com visual de vidro, ins
 - Importar uma geração pelo Task ID.
 - Instalar o app pelo navegador, sem Android Studio ou instalador de desktop.
 
-> **Começando agora?** [Crie sua conta KIE.AI pelo convite do projeto](https://kie.ai?ref=e8f6dd065f9a24fc91437577241fd3e6), gere sua chave no painel da KIE e cadastre-a no MySuno. Esse link de indicação pode gerar comissão para o criador do projeto.
+> **Começando agora?** [crie sua conta Kie](https://kie.ai?ref=e8f6dd065f9a24fc91437577241fd3e6), gere sua chave no painel da KIE e cadastre-a no MySuno. Esse link de indicação pode gerar comissão para o criador do projeto.
 
 ## 🚀 Comece em poucos passos
 
