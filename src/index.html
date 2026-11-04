@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="mysuno-static" content="false">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data: blob:; media-src 'self' https: blob: data:; connect-src 'self' https://api.kie.ai https://kieai.redpandaai.co; worker-src 'self'; manifest-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#090a0f">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+  <title>MySuno — Studio de Música (KIE.AI)</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/glass.css">
+  <script src="js/startup.js" defer></script>
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- 1. Left Sidebar (Apenas o Essencial e Funcional) -->
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="brand-wrapper">
+          <a href="#" class="brand-logo">
+            <span class="logo-my">My</span><span class="logo-suno">Suno</span>
+          </a>
+        </div>
+
+        <nav class="nav-group">
+          <button class="nav-btn create-pill-btn active" data-page="create">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+            </svg>
+            Criar Música
+          </button>
+
+          <button class="nav-btn" data-page="library" id="nav-btn-library">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6"></line>
+              <line x1="8" y1="12" x2="21" y2="12"></line>
+              <line x1="8" y1="18" x2="21" y2="18"></line>
+              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            </svg>
+            Minha Biblioteca
+          </button>
+        </nav>
+      </div>
+
+      <!-- Rodapé da Barra Lateral: Chave KIE.AI Funcional -->
+      <div class="sidebar-bottom">
+        <button class="nav-btn-sub api-card-btn" id="btn-api-settings" title="Configurar sua API Key do KIE.AI">
+          <div class="api-dot" id="api-status-dot"></div>
+          <div style="display: flex; flex-direction: column; overflow: hidden;">
+            <strong style="font-size: 0.82rem; color: #fff;">Chave KIE.AI</strong>
+            <span id="api-status-text" style="font-size: 0.72rem; color: var(--text-muted);">Não configurada</span>
+          </div>
+        </button>
+        <a href="https://kie.ai?ref=e8f6dd065f9a24fc91437577241fd3e6" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.73rem; color: var(--primary-orange); text-decoration: none; font-weight: 700; padding: 6px 10px; border-radius: 8px; background: rgba(255, 94, 58, 0.08); margin-top: 6px; border: 1px solid rgba(255, 94, 58, 0.2); transition: var(--transition);">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+          <span>Criar conta no KIE.AI &rarr;</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- 2. Middle Column (Painel de Criação Essencial) -->
+    <section class="create-panel">
+      <div class="panel-header-tabs" style="justify-content: space-between; align-items: center;">
+        <span style="font-size: 1.05rem; font-weight: 800; color: #fff;">Criar Nova Música</span>
+        <div class="model-select-wrap">
+          <select class="model-select-suno" id="model-select" disabled aria-label="Modelo musical da KIE">
+            <option value="">Carregando modelos...</option>
+          </select>
+          <svg class="select-chevron" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M7 10l5 5 5-5z"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <!-- Sub-barra com Modo Simples / Avançado -->
+        <div class="creation-subbar">
+          <div class="mode-pills-group">
+            <button class="mode-pill active" data-mode="simple">Simples</button>
+            <button class="mode-pill" data-mode="advanced">Personalizado</button>
+          </div>
+
+          <div class="instrumental-switch-wrap">
+            <span class="instrumental-text">Instrumental</span>
+            <label class="switch">
+              <input type="checkbox" id="instrumental-check">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Botões de Ação (+ Cover de Áudio, + Voz) -->
+        <div class="chip-pills-row">
+          <button class="chip-pill" id="chip-audio" title="Cover ou Extensão a partir de um arquivo de áudio">
+            <span>+</span> Cover / Extensão de Áudio
+          </button>
+          <button class="chip-pill" id="chip-voice" title="Definir preferência de voz">
+            <span>+</span> Preferência Vocal
+          </button>
+        </div>
+
+        <!-- Gaveta Completa para Upload de Arquivo / Gravação de Microfone / URL -->
+        <div class="audio-input-drawer" id="audio-drawer" style="display: none;">
+          <div class="audio-drawer-header">
+            <span class="drawer-label">ÁUDIO DE ORIGEM (MÁX. 8 MINUTOS)</span>
+            <div class="audio-source-tabs">
+              <button type="button" class="audio-tab-btn active" data-src-tab="upload" style="display: inline-flex; align-items: center; gap: 5px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                <span>Arquivo</span>
+              </button>
+              <button type="button" class="audio-tab-btn" data-src-tab="mic" style="display: inline-flex; align-items: center; gap: 5px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                <span>Gravar</span>
+              </button>
+              <button type="button" class="audio-tab-btn" data-src-tab="url" style="display: inline-flex; align-items: center; gap: 5px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                <span>Link</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Aba 1: Upload de Arquivo Local (PC ou Celular) -->
+          <div class="audio-tab-content active" id="tab-content-upload">
+            <label class="drop-zone" id="drop-zone">
+              <input type="file" id="audio-file-input" accept="audio/*" style="display: none;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <span id="upload-zone-text">Clique ou arraste um áudio (MP3, WAV, M4A)</span>
+            </label>
+          </div>
+
+          <!-- Aba 2: Gravação ao Vivo com o Microfone do Aparelho -->
+          <div class="audio-tab-content" id="tab-content-mic" style="display: none;">
+            <div class="mic-recorder-box">
+              <div class="mic-status-row">
+                <button type="button" class="btn-record-mic" id="btn-toggle-record">
+                  <div class="record-dot"></div>
+                  <span id="record-btn-text">Gravar Microfone</span>
+                </button>
+                <span class="record-timer" id="record-timer">00:00</span>
+              </div>
+
+              <!-- Animação Waveform ao Vivo (Fiel ao design de referência) -->
+              <div class="waveform-anim-box" id="mic-waveform-box" style="display: none;">
+                <canvas id="mic-waveform-canvas" width="360" height="64" class="waveform-canvas"></canvas>
+              </div>
+
+              <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">
+                Cante, assobie ou toque um instrumento. O Suno transformará sua ideia em música completa!
+              </span>
+            </div>
+          </div>
+
+          <!-- Aba 3: URL Direta -->
+          <div class="audio-tab-content" id="tab-content-url" style="display: none;">
+            <input type="url" class="text-input" id="upload-url-input" placeholder="https://storage.exemplo.com/audio.mp3">
+          </div>
+
+          <!-- Player de Prévia do Áudio Selecionado / Gravado -->
+          <div class="audio-preview-wrap" id="audio-preview-wrap" style="display: none;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <span id="audio-preview-name" style="font-size: 0.78rem; font-weight: 700; color: #fff;">audio-selecionado.mp3</span>
+              <button type="button" id="btn-remove-selected-audio" style="background:none; border:none; color:var(--status-danger); font-size:0.75rem; cursor:pointer; font-weight:700;">Remover</button>
+            </div>
+            <audio id="audio-local-preview" controls style="width: 100%; height: 32px; margin-top: 6px;"></audio>
+          </div>
+
+          <div class="drawer-options">
+            <label class="checkbox-label" title="Reinterpreta a melodia e ritmo em um estilo musical totalmente novo">
+              <input type="radio" name="audio-mode" value="cover" checked> Fazer Cover (Novo Estilo)
+            </label>
+            <label class="checkbox-label" title="Mantém a sua voz real gravada e gera a banda/instrumentos por baixo">
+              <input type="radio" name="audio-mode" value="instrumental"> Adicionar Instrumental (Sua Voz Real)
+            </label>
+            <label class="checkbox-label" title="Adiciona continuação a partir de um minuto da música">
+              <input type="radio" name="audio-mode" value="extend"> Extensão
+            </label>
+          </div>
+        </div>
+
+        <!-- Modo Personalizado (Título, Estilo e Letra Estruturada) -->
+        <div id="advanced-fields" style="display: none; flex-direction: column; gap: 14px;">
+          <div class="input-block">
+            <div class="input-header-row">
+              <label class="input-tag-label">TÍTULO</label>
+              <span class="char-count" id="title-char-count">0 / 80</span>
+            </div>
+            <input type="text" class="text-input" id="title-input" placeholder="Título da faixa..." maxlength="80">
+          </div>
+
+          <div class="input-block">
+            <div class="input-header-row">
+              <label class="input-tag-label">ESTILO MUSICAL</label>
+              <span class="char-count" id="style-char-count">0 / 1000</span>
+            </div>
+            <textarea class="text-area-small" id="style-input" placeholder="Pop acústico, violão ritmado, voz suave e melódica..." maxlength="1000"></textarea>
+            
+            <div class="style-tags-scroll">
+              <span class="style-chip">+ Trap</span>
+              <span class="style-chip">+ Synthwave</span>
+              <span class="style-chip">+ Lo-Fi</span>
+              <span class="style-chip">+ Sertanejo</span>
+              <span class="style-chip">+ Pop Acústico</span>
+              <span class="style-chip">+ MPB</span>
+              <span class="style-chip">+ Rock</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Caixa de Texto do Prompt / Letra -->
+        <div class="prompt-box-wrapper">
+          <textarea class="prompt-textarea" id="prompt-input" placeholder="Descreva a música ou cole a letra aqui (ex: Pop alegre em português com violão e percussão leve)..."></textarea>
+          
+          <div class="prompt-box-footer">
+            <button class="circle-plus-btn" id="btn-add-section" title="Adicionar [Verse] ou [Chorus]">
+              <span>+</span>
+            </button>
+            <span id="music-engine-label" style="font-size: 0.72rem; color: var(--text-muted);">Suno · KIE</span>
+          </div>
+        </div>
+
+        <!-- Botão Create -->
+        <button class="btn-suno-create" id="btn-create-submit">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+          </svg>
+          <span>Criar Música</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 3. Right Column (Workspace & Minhas Músicas) -->
+    <main class="workspace">
+      <div class="workspace-top-bar">
+        <div class="breadcrumbs">
+          <span class="workspace-current" style="font-size: 1.1rem;" id="library-title-display">Minha Biblioteca</span>
+          <span id="library-count-badge" style="font-size: 0.75rem; background: rgba(255,255,255,0.07); color: var(--text-muted); padding: 3px 9px; border-radius: 12px; font-weight: 600;">0 faixas</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button class="btn-share-workspace" id="btn-topbar-create" style="display: none; background: var(--primary-orange); border-color: var(--primary-orange); color: #fff; font-weight: 700;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+            </svg>
+            <span>Criar Música</span>
+          </button>
+
+          <button class="btn-share-workspace" id="btn-open-import-modal" title="Importar música gerada no KIE.AI usando o Task ID">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>Importar por Task ID</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra de Filtros e Busca Funcional -->
+      <div class="workspace-filter-bar">
+        <div class="search-box">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" class="search-input" id="search-input" placeholder="Buscar por título ou estilo...">
+        </div>
+
+        <div class="filter-dropdowns-group">
+          <button class="filter-pill-btn active" data-filter="all">Todas</button>
+          <button class="filter-pill-btn" data-filter="liked">Favoritas</button>
+          <button class="filter-pill-btn" data-filter="generating">Em Andamento</button>
+        </div>
+      </div>
+
+      <!-- Feed de Faixas Agrupadas por Data -->
+      <div class="feed-container" id="feed-container">
+        <!-- Renderizado dinamicamente pelo app.js -->
+      </div>
+    </main>
+
+  </div>
+
+  <!-- 4. Fixed Bottom Audio Player -->
+  <footer class="bottom-player">
+    <div class="player-left">
+      <div id="player-thumb-placeholder" class="player-thumb" style="display:flex; align-items:center; justify-content:center; background:#181a24; color:var(--text-muted);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 18V5l12-2v13"></path>
+          <circle cx="6" cy="18" r="3"></circle>
+          <circle cx="18" cy="16" r="3"></circle>
+        </svg>
+      </div>
+      <img id="player-thumb" class="player-thumb" src="" alt="thumb" style="display:none;">
+      <div class="player-meta">
+        <span id="player-title" class="player-song-title">Nenhuma música tocando</span>
+        <span id="player-sub" class="player-song-sub">Crie uma música no painel ao lado</span>
+      </div>
+    </div>
+
+    <div class="player-center">
+      <div class="player-controls">
+        <button class="player-ctrl-btn" title="Anterior">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="19 20 9 12 19 4 19 20"/>
+            <line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </button>
+
+        <button class="player-play-btn" id="player-play-btn" title="Play / Pause">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+        </button>
+
+        <button class="player-ctrl-btn" title="Próximo">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 4 15 12 5 20 5 4"/>
+            <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="progress-container">
+        <span class="time-stamp" id="player-time-current">0:00</span>
+        <input type="range" class="seek-bar" id="player-seek" value="0" min="0" max="100">
+        <span class="time-stamp" id="player-time-total">0:00</span>
+      </div>
+    </div>
+
+    <div class="player-right">
+      <button class="player-ctrl-btn" id="player-download-btn" title="Baixar Música em MP3">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+      </button>
+
+      <div class="volume-container">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-secondary);">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        </svg>
+        <input type="range" class="volume-bar" id="player-volume" value="80" min="0" max="100">
+      </div>
+    </div>
+  </footer>
+
+  <!-- 5. Modal de Configurações da API KIE.AI (BYOK) -->
+  <div class="modal-overlay" id="settings-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Configurar Chave KIE.AI</h2>
+        <button class="modal-close-btn" id="settings-close-btn">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
+          Esta aplicação é cliente-side e funciona no formato <strong>BYOK (Bring Your Own Key)</strong>. A sua chave fica salva no seu próprio dispositivo.
+        </p>
+
+        <div class="input-block">
+          <div class="input-header-row">
+            <label class="input-tag-label">SUA API KEY DA KIE.AI (BEARER TOKEN)</label>
+            <a href="https://kie.ai?ref=e8f6dd065f9a24fc91437577241fd3e6" target="_blank" rel="noopener noreferrer" style="font-size: 0.76rem; color: var(--primary-orange); text-decoration: underline; font-weight: 700;">Criar conta no KIE.AI &rarr;</a>
+          </div>
+          <input type="password" class="text-input" id="api-key-input" autocomplete="off" spellcheck="false" placeholder="Cole sua chave da KIE aqui...">
+        </div>
+
+        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: -6px;">
+          Ainda não tem uma chave? <a href="https://kie.ai?ref=e8f6dd065f9a24fc91437577241fd3e6" target="_blank" rel="noopener noreferrer" style="color: var(--primary-orange); font-weight: 700; text-decoration: underline;">Clique aqui para criar sua conta no KIE.AI</a> e gerar seu token de acesso.
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button class="btn-test-key" id="btn-test-key">Testar Conexão</button>
+          <span id="test-key-result" style="font-size: 0.8rem; align-self: center; font-weight: 600;"></span>
+        </div>
+
+        <div class="info-alert" style="display: flex; align-items: flex-start; gap: 8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          <span>O app faz chamadas diretas para <code>https://api.kie.ai/api/v1/jobs/createTask</code> e acompanha o progresso localmente a cada 4 segundos.</span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close-modal="settings-modal">Cancelar</button>
+        <button class="btn-primary" id="settings-save-btn">Salvar Chave</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Modal de Opções da Faixa (Extend / Cover / Stem / Delete) -->
+  <div class="modal-overlay" id="track-menu-modal">
+    <div class="modal-content" style="max-width: 420px;">
+      <div class="modal-header">
+        <h2 class="modal-title" id="track-menu-title">Ações da Faixa</h2>
+        <button class="modal-close-btn" data-close-modal="track-menu-modal">&times;</button>
+      </div>
+      <div class="modal-menu-list">
+        <button class="menu-action-item" id="menu-btn-extend">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="13 17 18 12 13 7"></polyline>
+            <polyline points="6 17 11 12 6 7"></polyline>
+          </svg>
+          <div>
+            <strong>Continuar Faixa (Extend)</strong>
+            <span>Adicionar continuação a partir de um minuto específico</span>
+          </div>
+        </button>
+
+        <button class="menu-action-item" id="menu-btn-cover">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+          </svg>
+          <div>
+            <strong>Criar Nova Versão (Cover de Áudio)</strong>
+            <span>Transformar estilo usando esta faixa como base</span>
+          </div>
+        </button>
+
+        <button class="menu-action-item" id="menu-btn-cover-art">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+          <div>
+            <strong>Gerar Imagem de Capa (KIE Cover)</strong>
+            <span>Criar uma nova arte visual exclusiva</span>
+          </div>
+        </button>
+
+        <button class="menu-action-item" id="menu-btn-download">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <div>
+            <strong>Baixar Áudio MP3</strong>
+            <span>Salvar no computador ou celular</span>
+          </div>
+        </button>
+
+        <button class="menu-action-item danger" id="menu-btn-delete">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          <div>
+            <strong>Excluir do Histórico</strong>
+            <span>Remover registro local da biblioteca</span>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Modal Elegante de Preferência Vocal -->
+  <div class="modal-overlay" id="vocal-modal">
+    <div class="modal-content" style="max-width: 440px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Preferência Vocal</h2>
+        <button class="modal-close-btn" data-close-modal="vocal-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-secondary);">
+          Escolha o timbre predominante para os vocais da sua música gerada pelo Suno:
+        </p>
+
+        <div class="vocal-options-grid">
+          <div class="vocal-card-option active" data-gender="female">
+            <div class="vocal-icon-wrap">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 1 5 5v3a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z"></path><path d="M20 21a8 8 0 0 0-16 0"></path></svg>
+            </div>
+            <strong style="color: #fff; font-size: 0.95rem;">Voz Feminina</strong>
+            <span style="font-size: 0.75rem; color: var(--text-secondary);">Timbre suave e melódico</span>
+          </div>
+
+          <div class="vocal-card-option" data-gender="male">
+            <div class="vocal-icon-wrap">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </div>
+            <strong style="color: #fff; font-size: 0.95rem;">Voz Masculina</strong>
+            <span style="font-size: 0.75rem; color: var(--text-secondary);">Timbre encorpado e firme</span>
+          </div>
+
+          <div class="vocal-card-option" data-gender="auto">
+            <div class="vocal-icon-wrap">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path></svg>
+            </div>
+            <strong style="color: #fff; font-size: 0.95rem;">Automático</strong>
+            <span style="font-size: 0.75rem; color: var(--text-secondary);">Definido pelo estilo musical</span>
+          </div>
+        </div>
+
+        <!-- Seção de Vozes Clonadas (Suno Voice Persona) -->
+        <div style="margin-top: 18px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <strong style="font-size: 0.82rem; color: #fff; text-transform: uppercase; letter-spacing: 0.5px;">Minhas Vozes Clonadas (Suno Voice)</strong>
+            <button type="button" id="btn-open-clone-wizard" style="background: rgba(255, 94, 58, 0.15); border: 1px solid var(--primary-orange); color: var(--primary-orange); font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 12px; cursor: pointer;">
+              + Clonar Minha Voz
+            </button>
+          </div>
+          <div id="cloned-voices-list" style="display: flex; flex-direction: column; gap: 8px;">
+            <!-- Renderizado dinamicamente -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close-modal="vocal-modal">Cancelar</button>
+        <button class="btn-primary" id="btn-save-vocal">Aplicar aos Vocais</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7.1 Modal de Clonagem de Voz (Suno Voice Create Custom Voice API) -->
+  <div class="modal-overlay" id="voice-clone-modal">
+    <div class="modal-content" style="max-width: 520px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Clonar Minha Voz (Suno Voice)</h2>
+        <button class="modal-close-btn" id="voice-clone-close-btn">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Indicador de Etapas -->
+        <div class="clone-steps-bar">
+          <div class="clone-step active" id="step-ind-1">1. Amostra de Voz</div>
+          <div class="clone-step" id="step-ind-2">2. Frase de Validação</div>
+          <div class="clone-step" id="step-ind-3">3. Finalizado</div>
+        </div>
+
+        <!-- ETAPA 1: Enviar Amostra Vocal -->
+        <div class="clone-step-panel" id="clone-step-1">
+          <p style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 8px;">
+            Grave ou selecione um áudio com a sua voz cantando ou falando (de preferência à capela, sem instrumentos de fundo):
+          </p>
+
+          <div style="font-size: 0.76rem; color: var(--primary-orange); font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span>Duração da amostra: entre 10 e 30 segundos (regra oficial do Suno)</span>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+            <button type="button" class="btn-record-mic" id="btn-record-clone-sample">
+              <div class="record-dot"></div>
+              <span id="clone-sample-rec-text">Gravar Amostra</span>
+            </button>
+            <span id="clone-sample-timer" style="font-family: monospace; font-size: 0.88rem; font-weight: 700; color: #fff; display: none;">00:00</span>
+            <label class="btn-secondary" style="font-size: 0.8rem; padding: 7px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+              <input type="file" id="clone-sample-file-input" accept="audio/*" style="display: none;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+              <span>Escolher Arquivo</span>
+            </label>
+          </div>
+
+          <!-- Animação Waveform ao Vivo na Amostra -->
+          <div class="waveform-anim-box" id="clone-sample-waveform-box" style="display: none;">
+            <canvas id="clone-sample-waveform-canvas" width="360" height="54" class="waveform-canvas"></canvas>
+          </div>
+
+          <div id="clone-sample-preview-wrap" style="display: none; background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+            <span id="clone-sample-name" style="font-size: 0.78rem; font-weight: 700; color: #fff;">amostra.mp3</span>
+            <audio id="clone-sample-audio" controls style="width: 100%; height: 32px; margin-top: 6px;"></audio>
+          </div>
+
+          <div class="input-block" style="margin-bottom: 10px;">
+            <label class="input-tag-label">IDIOMA DA FRASE DE VALIDAÇÃO</label>
+            <select class="text-input" id="clone-language-select">
+              <option value="Portuguese" selected>Português</option>
+              <option value="English">English</option>
+              <option value="Spanish">Español</option>
+            </select>
+          </div>
+
+          <button class="btn-primary" id="btn-submit-step-1" style="width: 100%; margin-top: 10px;">
+            Gerar Frase de Validação &rarr;
+          </button>
+        </div>
+
+        <!-- ETAPA 2: Ler Frase de Validação e Definir Metadados -->
+        <div class="clone-step-panel" id="clone-step-2" style="display: none;">
+          <p style="font-size: 0.84rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 8px;">
+            Por segurança e consentimento, leia ou cante em voz alta a frase abaixo para comprovar sua identidade vocal:
+          </p>
+
+          <div class="validation-phrase-box" id="validation-phrase-display">
+            Aguardando frase de validação da API...
+          </div>
+
+          <div style="margin: 14px 0;">
+            <button type="button" class="btn-record-mic" id="btn-record-verify-sample">
+              <div class="record-dot"></div>
+              <span id="verify-sample-rec-text">Gravar Leitura da Frase</span>
+            </button>
+
+            <!-- Animação Waveform ao Vivo na Leitura da Frase -->
+            <div class="waveform-anim-box" id="clone-verify-waveform-box" style="display: none; margin-top: 10px;">
+              <canvas id="clone-verify-waveform-canvas" width="360" height="54" class="waveform-canvas"></canvas>
+            </div>
+
+            <div id="verify-preview-wrap" style="display: none; margin-top: 8px;">
+              <audio id="verify-audio-preview" controls style="width: 100%; height: 32px;"></audio>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div class="input-block">
+              <label class="input-tag-label">NOME DA SUA VOZ</label>
+              <input type="text" class="text-input" id="clone-voice-name" placeholder="Ex: Minha Voz (Dani Saints)">
+            </div>
+
+            <div class="input-block">
+              <label class="input-tag-label">ESTILO VOCAL (OPCIONAL)</label>
+              <input type="text" class="text-input" id="clone-voice-style" placeholder="Ex: Pop acústico, expressivo">
+            </div>
+
+            <div class="input-block">
+              <label class="input-tag-label">NÍVEL DO CANTOR</label>
+              <select class="text-input" id="clone-skill-select">
+                <option value="beginner">Iniciante (beginner)</option>
+                <option value="intermediate" selected>Intermediário (intermediate)</option>
+                <option value="advanced">Avançado (advanced)</option>
+                <option value="professional">Profissional (professional)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="info-alert" style="margin-top: 12px; font-size: 0.78rem;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            <strong>Endpoint Gratuito:</strong> A criação da Voice Persona não desconta créditos da KIE.
+          </div>
+
+          <button class="btn-primary" id="btn-submit-step-2" style="width: 100%; margin-top: 14px;">
+            Concluir e Criar Voz Clonada
+          </button>
+          <button class="btn-secondary" id="btn-restart-clone" style="width: 100%; margin-top: 8px; display: none;">
+            Abandonar acompanhamento e iniciar nova validação
+          </button>
+        </div>
+
+        <!-- ETAPA 3: Sucesso -->
+        <div class="clone-step-panel" id="clone-step-3" style="display: none; text-align: center; padding: 20px 0;">
+          <div style="display: flex; justify-content: center; margin-bottom: 14px;">
+            <div style="width: 58px; height: 58px; border-radius: 50%; background: rgba(255, 94, 58, 0.12); border: 1px solid rgba(255, 94, 58, 0.3); display: flex; align-items: center; justify-content: center;">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary-orange)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+            </div>
+          </div>
+          <h3 style="font-size: 1.15rem; color: #fff; margin-bottom: 6px;">Voz Personalizada Criada!</h3>
+          <p style="font-size: 0.86rem; color: var(--text-secondary); max-width: 380px; margin: 0 auto 16px auto; line-height: 1.5;">
+            Seu modelo de voz está registrado no KIE.AI e salvo no seu aplicativo. O Suno cantará com o seu timbre nas músicas geradas.
+          </p>
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px; margin-bottom: 20px; font-family: monospace; font-size: 0.82rem; color: var(--primary-orange);">
+            Voice ID: <span id="clone-created-voice-id">-</span>
+          </div>
+          <button class="btn-primary" id="btn-finish-clone" style="padding: 10px 24px;">
+            Usar Esta Voz Agora
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. Modal de Inserção de Seções Musicais -->
+  <div class="modal-overlay" id="section-modal">
+    <div class="modal-content" style="max-width: 420px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Estrutura Musical</h2>
+        <button class="modal-close-btn" data-close-modal="section-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px;">
+          Clique em uma tag para inseri-la instantaneamente na sua letra:
+        </p>
+        <div class="section-chips-grid">
+          <button class="section-chip-btn" data-tag="[Verse 1]"><strong>[Verse 1]</strong><span>Primeiro verso</span></button>
+          <button class="section-chip-btn" data-tag="[Verse 2]"><strong>[Verse 2]</strong><span>Segundo verso</span></button>
+          <button class="section-chip-btn" data-tag="[Chorus]"><strong>[Chorus]</strong><span>Refrão marcante</span></button>
+          <button class="section-chip-btn" data-tag="[Pre-Chorus]"><strong>[Pre-Chorus]</strong><span>Preparação para o refrão</span></button>
+          <button class="section-chip-btn" data-tag="[Bridge]"><strong>[Bridge]</strong><span>Ponte / Mudança</span></button>
+          <button class="section-chip-btn" data-tag="[Drop]"><strong>[Drop]</strong><span>Explosão instrumental</span></button>
+          <button class="section-chip-btn" data-tag="[Intro]"><strong>[Intro]</strong><span>Abertura da música</span></button>
+          <button class="section-chip-btn" data-tag="[Outro]"><strong>[Outro]</strong><span>Finalização suave</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. Modal de Confirmação Moderno -->
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal-content" style="max-width: 380px;">
+      <div class="modal-header">
+        <h2 class="modal-title" id="confirm-modal-title">Confirmar Ação</h2>
+        <button class="modal-close-btn" data-close-modal="confirm-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="confirm-modal-message" style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="confirm-modal-cancel">Cancelar</button>
+        <button class="btn-primary" id="confirm-modal-confirm">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. Modal Importar Música por Task ID do KIE.AI -->
+  <div class="modal-overlay" id="import-task-modal">
+    <div class="modal-content" style="max-width: 440px;">
+      <div class="modal-header">
+        <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Importar do KIE.AI
+        </h2>
+        <button class="modal-close-btn" id="import-task-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 14px; line-height: 1.5;">
+          Cole o <strong>Task ID</strong> de uma música gerada pelo KIE.AI para sincronizá-la e adicioná-la à sua biblioteca local com capa, áudio e letra.
+        </p>
+
+        <div class="input-block">
+          <label class="input-tag-label">TASK ID DO SUNO</label>
+          <input type="text" class="text-input" id="import-task-input" placeholder="Ex: 5798939b-0294-41d1-93c6-e91024bb09e1" style="font-family: monospace; font-size: 0.82rem;">
+        </div>
+
+        <div id="import-task-status" style="font-size: 0.82rem; margin-top: 10px; display: none; padding: 8px 12px; border-radius: 6px;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="import-task-cancel-btn">Cancelar</button>
+        <button class="btn-primary" id="btn-submit-import-task" style="padding: 8px 20px;">
+          Buscar e Importar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <button id="pwa-install-btn" class="pwa-install" type="button" hidden>Instalar MySuno</button>
+  <aside id="pwa-notice" class="pwa-notice" aria-label="Atualização do aplicativo" hidden>
+    <p id="pwa-status" role="status"></p>
+    <div><button id="pwa-update-btn" class="btn-primary" type="button" hidden>Atualizar agora</button>
+    <button id="pwa-dismiss-btn" class="btn-secondary" type="button">Depois</button></div>
+  </aside>
+  <!-- 11. Container de Notificações Toast -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script type="module" src="js/pwa.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

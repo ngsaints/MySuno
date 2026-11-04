@@ -1,0 +1,10 @@
+{
+  "appId": "com.mysuno.app",
+  "appName": "MySuno",
+  "webDir": "src",
+  "bundledWebRuntime": false,
+  "server": {
+    "cleartext": true,
+    "androidScheme": "https"
+  }
+}

@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.preview/
+.tools/
+.build-tools/
+.env
+.env.*
+!.env.example
+*.log
+*.keystore
+*.jks
+android/local.properties
+.github/workflows/build-apk.yml
