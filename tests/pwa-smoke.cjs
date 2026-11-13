@@ -35,6 +35,7 @@ app.whenReady().then(async () => {
   win.webContents.debugger.attach('1.3');
   const install=await win.webContents.debugger.sendCommand('Page.getInstallabilityErrors');
   assert.deepEqual(install.installabilityErrors,[]);
+  await require('./speech-browser.cjs')(win);
   await win.webContents.executeJavaScript(`localStorage.setItem('mysuno_kie_api_key','pwa-local-test-only');localStorage.setItem('mysuno_tracks_history',JSON.stringify([{id:'pwa-test-track',title:'Minha faixa local'}]));`);
   const swFile=path.join(directory,'sw.js');
   fs.writeFileSync(swFile,fs.readFileSync(swFile,'utf8').replace(/const VERSION = "([^"]+)";/,'const VERSION = "$1-update-test";'));

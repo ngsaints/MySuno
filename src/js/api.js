@@ -229,6 +229,83 @@ export async function createMusicTask(options) {
   };
 }
 
+export function buildSpeechPayload(options = {}) {
+  const { customMode = false } = options;
+  if (typeof customMode !== 'boolean') throw new Error('Modo de narração inválido.');
+  const text = (value, maximum, label, required = true) => {
+    if (value != null && typeof value !== 'string') throw new Error(label + ' inválido.');
+    const clean = (value || '').trim();
+    if ((required && !clean) || clean.length > maximum) throw new Error(label + ' deve ter ' + (required ? 'de 1 a ' : 'até ') + maximum + ' caracteres.');
+    return clean;
+  };
+  const input = { customMode };
+  if (!customMode) {
+    input.prompt = text(options.prompt, 3000, 'A descrição');
+  } else {
+    input.script = text(options.script, 5000, 'O roteiro');
+    const tone = text(options.tone, 1000, 'A direção de voz', false);
+    if (tone) input.tone = tone;
+    if (options.variety != null) {
+      if (!Number.isInteger(options.variety) || options.variety < 0 || options.variety > 4) throw new Error('A variedade deve ser um inteiro de 0 a 4.');
+      input.variety = options.variety;
+    }
+    if (options.vocalGender) {
+      if (typeof options.vocalGender !== 'string' || !['f', 'm'].includes(options.vocalGender.toLowerCase())) throw new Error('Preferência vocal inválida.');
+      input.vocalGender = options.vocalGender.toLowerCase();
+    }
+    if (options.backgroundMusic != null) {
+      if (typeof options.backgroundMusic !== 'boolean') throw new Error('Opção de música de fundo inválida.');
+      input.backgroundMusic = options.backgroundMusic;
+    }
+  }
+  return { model: 'ai-music-api/speech', input };
+}
+
+export async function createSpeechTask(options) {
+  const apiKey = getApiKey();
+  if (!apiKey) throw new Error('Cadastre sua chave KIE.AI para criar uma narração.');
+  const payload = buildSpeechPayload(options);
+  const response = await kieFetch(KIE_API_BASE + '/api/v1/jobs/createTask', {
+    method: 'POST', signal: AbortSignal.timeout(30000),
+    headers: { Authorization: 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  const result = await response.json();
+  if (!response.ok || result.code !== 200) throw apiError(result.msg || 'Não foi possível criar a narração.', response.ok ? result.code : response.status);
+  if (typeof result.data?.taskId !== 'string' || !result.data.taskId.trim()) throw new Error('A KIE não retornou o identificador da narração.');
+  return { taskId: result.data.taskId };
+}
+
+export function extractAudioTracks(data) {
+  let tracks = data.response?.data;
+  if (!Array.isArray(tracks) || !tracks.length) {
+    const result = typeof data.resultJson === 'string' ? (data.resultJson.trim() ? JSON.parse(data.resultJson) : {}) : (data.resultJson || {});
+    const candidates = [result.response?.data, result.data, result.resultUrls];
+    tracks = candidates.find(Array.isArray) || [];
+  }
+  return tracks.filter(track => typeof track === 'string' || (track && typeof track === 'object')).map((track, index) => typeof track === 'string'
+    ? { id: (data.taskId || 'audio') + '_' + index, audio_url: track }
+    : { ...track, audio_url: track.audio_url || track.stream_audio_url || track.audioUrl || track.streamAudioUrl, image_url: track.image_url || track.imageUrl })
+    .filter(track => typeof track.audio_url === 'string' && /^https:\/\//i.test(track.audio_url));
+}
+
+export function saveTaskResults(taskId, tracks) {
+  if (!tracks.length) throw new Error('A KIE concluiu a tarefa sem retornar áudios reproduzíveis.');
+  const pending = getSavedTracks().find(track => track.id === 'task_' + taskId) || getSavedTracks().find(track => track.taskId === taskId) || {};
+  const completed = tracks.map((track, index) => ({
+    ...track, id: track.id || taskId + '_' + index, taskId, audioId: track.id,
+    variationIndex: index, kind: pending.kind || 'music',
+    title: track.title || (pending.title || (pending.kind === 'speech' ? 'Narração' : 'Música')) + (tracks.length > 1 ? ' · versão ' + (index + 1) : ''),
+    style: track.style || track.tags || pending.style || '',
+    image_url: track.image_url || 'assets/icon.svg',
+    status: 'success', createdAt: pending.createdAt || new Date().toISOString(), dateGroup: pending.dateGroup || 'Hoje'
+  }));
+  // Persist results before removing the pending record, so storage failures remain recoverable.
+  for (const track of completed) saveTrack(track);
+  removeTrack('task_' + taskId);
+  return completed;
+}
+
 /**
  * 4. Consultar status do Job (Polling)
  * Endpoint: GET /api/v1/jobs/recordInfo?taskId=...
@@ -258,57 +335,37 @@ export async function getTaskDetail(taskId) {
  * Trata as 2 faixas retornadas pelo Suno (duas variações)
  */
 export function startPollingTask(taskId, { onUpdate, onComplete, onError }) {
-  let isDone = false;
-  let attempts = 0;
-  const maxAttempts = 180; // ~ 12 minutos (180 * 4s)
-
-  const timer = setInterval(async () => {
-    attempts++;
-    if (attempts > maxAttempts) {
-      clearInterval(timer);
-      onError(new Error('Tempo limite de geração excedido pela API Suno.'));
-      return;
-    }
-
+  let stopped = false, cancelled = false, timer;
+  const deadline = Date.now() + 12 * 60 * 1000;
+  async function poll() {
     try {
+      if (Date.now() >= deadline) throw new Error('Tempo limite de geração excedido. Consulte o Task ID novamente.');
       const result = await getTaskDetail(taskId);
+      if (stopped) return;
+      if (result.code != null && ![0, 200].includes(result.code)) throw apiError(result.msg || 'Falha ao consultar geração.', result.code);
       const data = result.data || {};
-      const state = (data.state || '').toLowerCase(); // waiting, queuing, generating, success, fail
-
-      if (onUpdate) {
-        onUpdate({ state, taskId, raw: data });
-      }
-
+      const state = String(data.state || '').toLowerCase();
+      onUpdate?.({ state, taskId, raw: data });
+      if (stopped) return;
       if (state === 'success') {
-        clearInterval(timer);
-        isDone = true;
-
-        // Extrai a lista de faixas retornadas pelo Suno V6
-        let tracksList = [];
-        try {
-          if (data.response?.data && Array.isArray(data.response.data)) {
-            tracksList = data.response.data;
-          } else if (typeof data.resultJson === 'string') {
-            const parsed = JSON.parse(data.resultJson);
-            tracksList = parsed.response?.data || parsed.data || [];
-          }
-        } catch (e) {
-          console.warn('Erro ao parsear faixas da resposta:', e);
-        }
-
-        onComplete({ taskId, tracks: tracksList, raw: data });
-      } else if (state === 'fail') {
-        clearInterval(timer);
-        isDone = true;
-        const failReason = data.failReason || 'A geração da música falhou no Suno.';
-        onError(new Error(failReason));
+        const tracks = extractAudioTracks(data);
+        if (!tracks.length) throw new Error('A KIE concluiu a tarefa sem retornar áudios reproduzíveis.');
+        stopped = true;
+        onComplete({ taskId, tracks, raw: data });
+        return;
       }
+      if (['fail', 'failed'].includes(state)) throw new Error(safeErrorMessage(data.failMsg || data.failReason || 'A geração do áudio falhou.'));
+      timer = setTimeout(poll, 4000);
     } catch (err) {
-      console.error(`[MySuno] Tentativa ${attempts} de consulta falhou:`, safeErrorMessage(err));
+      if (cancelled) return;
+      if (stopped) { console.error('[MySuno] Processar resultado:', safeErrorMessage(err)); onError(err); return; }
+      console.error('[MySuno] Consultar áudio:', safeErrorMessage(err));
+      if ((err.transient || err instanceof TypeError || ['TimeoutError', 'AbortError'].includes(err.name)) && Date.now() < deadline) timer = setTimeout(poll, 4000);
+      else { stopped = true; onError(err); }
     }
-  }, 4000);
-
-  return () => clearInterval(timer);
+  }
+  timer = setTimeout(poll, 0);
+  return () => { stopped = true; cancelled = true; clearTimeout(timer); };
 }
 
 /**

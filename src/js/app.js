@@ -1,3 +1,4 @@
+import { initSpeech } from './speech.js';
 import { initMusicModels, getSelectedMusicModel } from './models.js';
 /**
  * MySuno — Main Application Controller
@@ -11,6 +12,8 @@ import {
   testApiKeyConnection,
   getSavedTracks,
   saveTrack,
+  saveTaskResults,
+  extractAudioTracks,
   removeTrack,
   createMusicTask,
   startPollingTask,
@@ -127,6 +130,7 @@ let cloneVerifyVisualizer = null;
 document.addEventListener('DOMContentLoaded', () => {
   initUI();
   initMusicModels();
+  initSpeech({ notify: showToast, onTaskCreated: taskId => { renderTracksFeed(); pollMusicProgress(taskId); } });
   updateApiStatus();
   renderTracksFeed();
 
@@ -759,37 +763,14 @@ function pollMusicProgress(taskId) {
     },
     onComplete: ({ tracks }) => {
       activeTasksPolling.delete(taskId);
-      removeTrack(`task_${taskId}`);
-
-      if (tracks && tracks.length > 0) {
-        tracks.forEach((t, index) => {
-          const newTrack = {
-            id: t.id || `track_${Date.now()}_${index}`,
-            taskId: taskId,
-            audioId: t.id,
-            variationIndex: index,
-            dateGroup: 'Hoje',
-            title: t.title || 'Faixa Suno V6',
-            style: t.style || t.prompt || 'Música Suno V6',
-            audio_url: t.audio_url || t.stream_audio_url,
-            image_url: t.image_url || 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=200&auto=format&fit=crop&q=80',
-            duration: t.duration ? formatDuration(t.duration) : '2:30',
-            hasExtendPill: true,
-            status: 'success',
-            createdAt: new Date().toISOString()
-          };
-          saveTrack(newTrack);
-        });
-
-        // Carrega a primeira variação no player automaticamente
-        player.loadTrack(tracks[0], true);
-      }
+      const completed = saveTaskResults(taskId, tracks);
+      if (completed[0]) player.loadTrack(completed[0], true);
       renderTracksFeed();
     },
     onError: (err) => {
       activeTasksPolling.delete(taskId);
       const track = getSavedTracks().find(t => t.taskId === taskId);
-      console.error('[MySuno] Geração musical:', err.message);
+      console.error('[MySuno] Geração de áudio:', safeErrorMessage(err));
       if (track) {
         track.status = 'fail';
         track.errorMessage = err.message;
@@ -904,12 +885,13 @@ function renderTracksFeed() {
                       </svg>
                     </div>
                   `}
-                  <span class="thumb-duration-pill">${escapeHtml(String(track.duration || '2:30'))}</span>
+                  <span class="thumb-duration-pill">${escapeHtml(typeof track.duration === 'number' ? (track.duration > 0 ? formatDuration(track.duration) : '—') : String(track.duration || '—'))}</span>
                 </div>
 
                 <div class="card-info">
                   <div class="card-title-row">
                     <span class="card-title">${escapeHtml(track.title || 'Untitled')}</span>
+                    ${track.kind === 'speech' ? '<span class="speech-badge">Narração</span>' : ''}
                     ${isGenerating ? `<span style="font-size:0.68rem; color:var(--primary-orange); font-weight:700;">• Gerando no Suno...</span>` : ''}
                     ${isFailed ? `<span style="font-size:0.68rem; color:var(--status-danger); font-weight:700;">• Falhou</span>` : ''}
                   </div>
@@ -970,6 +952,7 @@ function initTrackMenuModal() {
   const btnDelete = document.getElementById('menu-btn-delete');
 
   btnExtend.addEventListener('click', () => {
+    document.getElementById('kind-music').click();
     modal.classList.remove('active');
     if (!selectedTrackForMenu) return;
 
@@ -1007,6 +990,7 @@ function initTrackMenuModal() {
   });
 
   btnCover.addEventListener('click', () => {
+    document.getElementById('kind-music').click();
     modal.classList.remove('active');
     if (!selectedTrackForMenu) return;
 
@@ -1126,6 +1110,7 @@ window.openTrackMenu = function(trackId) {
   const track = getSavedTracks().find(t => t.id === trackId);
   if (!track) return;
   selectedTrackForMenu = track;
+  for (const id of ['menu-btn-extend', 'menu-btn-cover', 'menu-btn-cover-art']) document.getElementById(id).hidden = track.kind === 'speech';
   document.getElementById('track-menu-title').textContent = track.title || 'Ações da Faixa';
   document.getElementById('track-menu-modal').classList.add('active');
 };
@@ -1749,23 +1734,15 @@ function initImportTaskModal() {
         const data = detail.data || detail || {};
         const state = (data.state || '').toLowerCase();
 
-        let tracksList = [];
-        try {
-          if (data.response?.data && Array.isArray(data.response.data)) {
-            tracksList = data.response.data;
-          } else if (typeof data.resultJson === 'string') {
-            const parsed = JSON.parse(data.resultJson);
-            tracksList = parsed.response?.data || parsed.data || [];
-          } else if (data.resultJson?.response?.data) {
-            tracksList = data.resultJson.response.data;
-          }
-        } catch (_) {}
+        const isSpeech = data.model === 'ai-music-api/speech';
+        const tracksList = extractAudioTracks(data);
 
         if (tracksList.length === 0 && (state === 'waiting' || state === 'queuing' || state === 'generating')) {
           const pendingTrack = {
             id: `task_${taskId}`,
             taskId: taskId,
-            title: 'Música Importada (Em Geração)',
+            title: isSpeech ? 'Narração importada (em geração)' : 'Música importada (em geração)',
+            kind: isSpeech ? 'speech' : 'music',
             status: 'generating',
             createdAt: new Date().toISOString(),
             dateGroup: 'Hoje'
@@ -1788,10 +1765,11 @@ function initImportTaskModal() {
             taskId: taskId,
             audioId: st.id,
             variationIndex: idx,
-            title: st.title || `Música KIE (${taskId.slice(0, 6)})`,
+            title: st.title || `${isSpeech ? 'Narração' : 'Música'} KIE (${taskId.slice(0, 6)}) · versão ${idx + 1}`,
+            kind: isSpeech ? 'speech' : 'music',
             style: st.tags || '',
             prompt: st.prompt || '',
-            model: st.model_name || 'v6-mini',
+            model: st.model_name || data.model || '',
             audio_url: st.audio_url || '',
             image_url: st.image_url || st.image_large_url || '',
             duration: st.duration || 0,

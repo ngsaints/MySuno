@@ -12,7 +12,7 @@ Um estúdio de música com IA que cabe no navegador — com visual de vidro, ins
 [![Criar conta KIE.AI](https://img.shields.io/badge/Criar_conta_KIE.AI-24283b?style=for-the-badge&logo=musicbrainz&logoColor=ffad80)](https://kie.ai?ref=e8f6dd065f9a24fc91437577241fd3e6)
 
 [![Publicação](https://github.com/ngsaints/MySuno/actions/workflows/pages.yml/badge.svg)](https://github.com/ngsaints/MySuno/actions/workflows/pages.yml)
-![Versão](https://img.shields.io/badge/versão-1.0.0-f07195)
+![Versão](https://img.shields.io/badge/versão-1.1.0-f07195)
 ![PWA](https://img.shields.io/badge/PWA-instalável-9e9af3)
 ![BYOK](https://img.shields.io/badge/BYOK-chave_do_usuário-79c9b0)
 
@@ -23,6 +23,7 @@ Um estúdio de música com IA que cabe no navegador — com visual de vidro, ins
 ## 🎵 O que dá para fazer
 
 - Criar músicas a partir de uma ideia ou de uma letra completa.
+- Criar narrações expressivas com Suno Speech, em duas versões por pedido.
 - Escolher entre modo simples e personalizado.
 - Consultar os modelos atuais da KIE e usar **Automático** para selecionar a versão mais recente documentada.
 - Usar áudio enviado ou gravado no microfone para cover e extensão.
@@ -77,6 +78,23 @@ O MySuno usa **BYOK — Bring Your Own Key**.
 | Cache offline da PWA | Somente arquivos públicos da interface. Não guarda requisições autenticadas nem áudios enviados. |
 
 A versão GitHub Pages não tem servidor do projeto recebendo chaves. Não há chave compartilhada, telemetria própria ou sincronização da biblioteca. O armazenamento local não é um cofre criptografado: quem tiver acesso ao seu perfil de navegador pode acessar seus dados. Use o app apenas em aparelhos e perfis de confiança.
+
+## 🎙️ Novo na versão 1.1 · Suno Speech
+
+Abra a aba **Narração** para criar locuções, podcasts, anúncios e histórias faladas.
+
+| Modo | O que você informa |
+| --- | --- |
+| **Simples** | Uma ideia ou descrição de cena com até 3.000 caracteres. O modelo escreve e interpreta o roteiro. |
+| **Personalizado** | Seu roteiro de até 5.000 caracteres, direção de voz de até 1.000 caracteres, preferência feminina/masculina, variedade de 0 a 4 e música de fundo opcional. |
+
+Cada pedido retorna duas versões, identificadas como **Narração** na mesma biblioteca. O player, os favoritos e o download funcionam para músicas e narrações. O acompanhamento usa o Task ID e pode continuar após reabrir o app.
+
+Speech gera uma voz a cada pedido; a API não oferece uma voz fixa nem documenta o uso das vozes clonadas de música nessa operação. Não há promessa de reproduzir uma identidade vocal específica. A cobrança depende da sua conta KIE; não há chave compartilhada no aplicativo.
+
+![Criação de narração](.github/assets/speech.png)
+
+Detalhes técnicos: [documentação oficial do Suno Speech](https://docs.kie.ai/suno-api/generate-speech). Para começar, [crie sua conta Kie](https://kie.ai?ref=e8f6dd065f9a24fc91437577241fd3e6).
 
 ## 🎙️ Usando sua voz
 

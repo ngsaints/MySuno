@@ -169,3 +169,16 @@ button:disabled { cursor: not-allowed; }
 .pwa-notice p { font-size: .86rem; line-height: 1.6; margin-bottom: 14px; }
 .pwa-notice div { display: flex; gap: 10px; }
 @media (max-width: 560px) { .pwa-notice, .pwa-install { bottom: 132px; } }
+/* Speech controls share the existing visual system; no motion behavior is changed. */
+.creation-kind-tabs { display: flex; gap: 8px; padding: 14px 22px 0; }
+.creation-kind-tabs button { flex: 1; cursor: pointer; padding: 10px 12px; border: 1px solid var(--border-subtle); border-radius: 12px; color: var(--text-secondary); background: var(--bg-input); font-weight: 700; }
+.creation-kind-tabs button[aria-selected="true"] { color: var(--text-main); background: rgba(255, 137, 108, .12); border-color: rgba(255, 137, 108, .4); }
+.creation-kind-tabs button span, .speech-badge { font-size: .61rem; color: var(--primary-orange); padding: 2px 6px; border: 1px solid rgba(255, 137, 108, .25); border-radius: 6px; white-space: nowrap; }
+.speech-intro { font-size: .82rem; color: var(--text-secondary); line-height: 1.7; }
+.speech-text { resize: vertical; min-height: 160px; }
+.speech-hint { color: var(--text-secondary); font-size: .71rem; line-height: 1.6; }
+.speech-advanced { display: flex; flex-direction: column; gap: 18px; }
+.speech-options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.speech-background { display: flex; align-items: center; gap: 10px; font-size: .79rem; cursor: pointer; }
+.speech-background input { accent-color: var(--primary-orange); width: 16px; height: 16px; }
+@media (max-width: 380px) { .speech-options-grid { grid-template-columns: 1fr; } }
