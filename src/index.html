@@ -68,7 +68,7 @@
     <!-- 2. Middle Column (Painel de Criação Essencial) -->
     <section class="create-panel">
       <div class="panel-header-tabs" style="justify-content: space-between; align-items: center;">
-        <span style="font-size: 1.05rem; font-weight: 800; color: #fff;">Criar Nova Música</span>
+        <span id="creation-heading" style="font-size: 1.05rem; font-weight: 800; color: #fff;">Criar Nova Música</span>
         <div class="model-select-wrap">
           <select class="model-select-suno" id="model-select" disabled aria-label="Modelo musical da KIE">
             <option value="">Carregando modelos...</option>
@@ -79,7 +79,11 @@
         </div>
       </div>
 
-      <div class="panel-body">
+      <div class="creation-kind-tabs" role="tablist" aria-label="Tipo de criação">
+        <button id="kind-music" type="button" role="tab" aria-selected="true" aria-controls="music-form">Música</button>
+        <button id="kind-speech" type="button" role="tab" aria-selected="false" aria-controls="speech-form" tabindex="-1">Narração <span>Novo</span></button>
+      </div>
+      <div class="panel-body" id="music-form" role="tabpanel" aria-labelledby="kind-music">
         <!-- Sub-barra com Modo Simples / Avançado -->
         <div class="creation-subbar">
           <div class="mode-pills-group">
@@ -237,6 +241,51 @@
           <span>Criar Música</span>
         </button>
       </div>
+      <form id="speech-form" class="panel-body" role="tabpanel" aria-labelledby="kind-speech" hidden>
+        <p class="speech-intro">Dê voz a uma ideia, anúncio, podcast ou história. Cada pedido gera duas versões para você escolher.</p>
+        <div class="input-block">
+          <label class="input-tag-label" for="speech-mode">Modo de narração</label>
+          <select id="speech-mode" class="text-input">
+            <option value="simple">Simples · a IA escreve o roteiro</option>
+            <option value="advanced">Personalizado · meu roteiro</option>
+          </select>
+        </div>
+        <div class="input-block">
+          <label class="input-tag-label" for="speech-title">Título na biblioteca (opcional)</label>
+          <input id="speech-title" class="text-input" maxlength="80" placeholder="Ex.: Boas-vindas ao meu podcast">
+        </div>
+        <div class="input-block">
+          <label id="speech-text-label" class="input-tag-label" for="speech-text">Descreva a cena</label>
+          <textarea id="speech-text" class="text-input speech-text" rows="7" maxlength="3000" required placeholder="Uma abertura de podcast em português brasileiro, acolhedora e animada."></textarea>
+          <small id="speech-text-count" class="speech-hint">0 / 3000</small>
+        </div>
+        <div id="speech-advanced" class="speech-advanced" hidden>
+          <div class="input-block">
+            <label class="input-tag-label" for="speech-tone">Direção de voz (opcional)</label>
+            <textarea id="speech-tone" class="text-input" rows="3" maxlength="1000" placeholder="Tom acolhedor, ritmo calmo, emoção contida, sotaque brasileiro..."></textarea>
+            <small id="speech-tone-count" class="speech-hint">0 / 1000</small>
+          </div>
+          <div class="speech-options-grid">
+            <div class="input-block">
+              <label class="input-tag-label" for="speech-gender">Preferência de voz</label>
+              <select id="speech-gender" class="text-input">
+                <option value="">Automática</option><option value="f">Feminina</option><option value="m">Masculina</option>
+              </select>
+            </div>
+            <div class="input-block">
+              <label class="input-tag-label" for="speech-variety">Variedade</label>
+              <select id="speech-variety" class="text-input">
+                <option value="0">0 · Fiel ao estilo</option><option value="1" selected>1 · Equilibrada</option>
+                <option value="2">2 · Estilos distintos</option><option value="3">3 · Exploratória</option><option value="4">4 · Muito variada</option>
+              </select>
+            </div>
+          </div>
+          <label class="speech-background"><input id="speech-background" type="checkbox"> Criar música de fundo original</label>
+          <p class="speech-hint">A voz é gerada a cada pedido. Vozes clonadas de músicas não são aplicadas à narração.</p>
+        </div>
+        <button class="btn-suno-create" id="speech-submit" type="submit">Criar Narração</button>
+        <p class="speech-hint">Usa sua própria chave e os créditos da sua conta KIE. O áudio só aparece quando a geração terminar.</p>
+      </form>
     </section>
 
     <!-- 3. Right Column (Workspace & Minhas Músicas) -->
