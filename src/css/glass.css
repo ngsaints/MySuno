@@ -80,6 +80,11 @@ button:disabled { cursor: not-allowed; }
 }
 .mode-pills-group, .chip-pill, .filter-pill-btn, .model-select-suno { background: rgba(255, 255, 255, .045); }
 .mode-pill.active, .filter-pill-btn.active { background: rgba(255, 255, 255, .13); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .09); }
+.creation-subbar { flex-wrap: wrap; gap: 10px 12px; }
+.creation-subbar .mode-pills-group { flex-shrink: 0; max-width: 100%; }
+.creation-subbar .mode-pill { padding-inline: 10px; white-space: nowrap; }
+.instrumental-switch-wrap { flex-shrink: 0; margin-left: auto; }
+.instrumental-switch-wrap .switch { flex-shrink: 0; }
 .model-select-suno option, select option { background: #202333; color: #f5f5fa; }
 .chip-pill { font-weight: 600; }
 .btn-suno-create, .btn-primary { color: #25141b; font-weight: 800; box-shadow: 0 8px 26px rgba(249, 128, 103, .16), inset 0 1px 0 rgba(255, 255, 255, .3); }
